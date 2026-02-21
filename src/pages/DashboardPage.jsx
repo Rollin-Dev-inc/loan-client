@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Layout from '../components/Layout'
 import Modal from '../components/modal'
 import { fetchDashboardSummary } from '../services/dashboard'
+import AuditLogPage from './AuditLogPage'
 import ListItemPage from './ListItemPage'
 import ListLoanPage from './ListLoanPage'
 
@@ -93,44 +94,38 @@ function DashboardContent({ token }) {
   const borrowedItems = data?.borrowed_items ?? []
   const maxLoanCount = Math.max(...borrowedItems.map((item) => item.total_loans), 1)
 
-  const handleExportExcel = () => {
-    if (!data) {
-      return
+  const handleExportExcel = async () => {
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/v1/reports/loans/export', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Gagal mengunduh laporan Excel');
+      }
+
+      const blob = await response.blob()
+      let filename = `Laporan_Peminjaman_${new Date().toISOString().slice(0, 10)}.xlsx`
+
+      // Attempt to extract filename from Content-Disposition header if available
+      const contentDisposition = response.headers.get('Content-Disposition')
+      if (contentDisposition && contentDisposition.indexOf('filename=') !== -1) {
+        const matches = /filename="([^"]+)"/.exec(contentDisposition)
+        if (matches != null && matches[1]) filename = matches[1]
+      }
+
+      const url = window.URL.createObjectURL(blob)
+      const anchor = document.createElement('a')
+      anchor.href = url
+      anchor.download = filename
+      document.body.appendChild(anchor)
+      anchor.click()
+      anchor.remove()
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      setErrorMessage(error.message);
     }
-
-    const rows = [
-      ['Dashboard Rental Mobil'],
-      ['Periode', period],
-      ['Tanggal Mulai', data.period_start],
-      ['Tanggal Akhir', data.period_end],
-      [],
-      ['Ringkasan'],
-      ['Pendapatan', data.total_revenue],
-      ['Total Pinjaman', data.total_loans],
-      ['Item Unik Dipinjam', data.unique_items_borrowed],
-      ['Item Pernah Dipinjam', data.items_ever_borrowed],
-      [],
-      ['Item yang Pernah Dipinjam'],
-      ['Kode', 'Nama Item', 'Total Pinjaman', 'Pendapatan', 'Terakhir Dipinjam'],
-      ...borrowedItems.map((item) => [
-        item.item_code,
-        item.item_name,
-        item.total_loans,
-        item.total_revenue,
-        item.last_borrowed_at,
-      ]),
-    ]
-
-    const csv = `\uFEFF${rows
-      .map((row) => row.map(toCsvValue).join(','))
-      .join('\n')}`
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-    const anchor = document.createElement('a')
-    anchor.href = url
-    anchor.download = `dashboard-${period}-${new Date().toISOString().slice(0, 10)}.csv`
-    anchor.click()
-    URL.revokeObjectURL(url)
   }
 
   return (
@@ -265,15 +260,18 @@ function DashboardContent({ token }) {
   )
 }
 
-function DashboardPage({ token, onLogout }) {
-  const [activeMenu, setActiveMenu] = useState('dashboard')
+function DashboardPage({ token, userRole, onLogout }) {
+  const [activeMenu, setActiveMenu] = useState(() => {
+    return userRole === 'ADMIN' ? 'dashboard' : 'loans'
+  })
 
   return (
-    <Layout activeMenu={activeMenu} onMenuChange={setActiveMenu} onLogout={onLogout}>
-      {activeMenu === 'dashboard' ? <DashboardContent token={token} /> : null}
+    <Layout activeMenu={activeMenu} onMenuChange={setActiveMenu} onLogout={onLogout} userRole={userRole}>
+      {activeMenu === 'dashboard' && userRole === 'ADMIN' ? <DashboardContent token={token} /> : null}
       {activeMenu === 'loans' ? <ListLoanPage token={token} /> : null}
-      {activeMenu === 'items' ? <ListItemPage token={token} /> : null}
-      {activeMenu !== 'dashboard' && activeMenu !== 'loans' && activeMenu !== 'items' ? (
+      {activeMenu === 'items' ? <ListItemPage token={token} userRole={userRole} /> : null}
+      {activeMenu === 'audits' && userRole === 'ADMIN' ? <AuditLogPage token={token} /> : null}
+      {activeMenu !== 'dashboard' && activeMenu !== 'loans' && activeMenu !== 'items' && activeMenu !== 'audits' ? (
         <DashboardPlaceholder title={activeMenu} />
       ) : null}
     </Layout>

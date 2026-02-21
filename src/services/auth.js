@@ -14,3 +14,18 @@ export async function loginRequest({ username, password }) {
 
   return payload
 }
+
+export async function fetchProfile(token) {
+  const response = await fetch(`${getApiBaseUrl()}/api/v1/auth/me`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+
+  const payload = await response.json().catch(() => ({}))
+  if (!response.ok) {
+    throw new Error(payload.detail || 'Gagal mengambil profil')
+  }
+
+  return payload
+}

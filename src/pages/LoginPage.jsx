@@ -3,7 +3,7 @@ import { useState } from 'react'
 import AuthCard from '../components/AuthCard'
 import Button from '../components/Button'
 import TextInput from '../components/TextInput'
-import { loginRequest } from '../services/auth'
+import { fetchProfile, loginRequest } from '../services/auth'
 
 function LoginPage({ onLoginSuccess }) {
   const [form, setForm] = useState({ username: '', password: '' })
@@ -24,10 +24,15 @@ function LoginPage({ onLoginSuccess }) {
 
     try {
       const result = await loginRequest(form)
-      localStorage.setItem('access_token', result.access_token)
+      const token = result.access_token
+      localStorage.setItem('access_token', token)
+
+      const profile = await fetchProfile(token)
+      localStorage.setItem('user_role', profile.role)
+
       setSuccessMessage('Login berhasil')
       if (onLoginSuccess) {
-        onLoginSuccess(result.access_token)
+        onLoginSuccess({ token, role: profile.role })
       }
     } catch (error) {
       setErrorMessage(error.message)

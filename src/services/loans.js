@@ -17,8 +17,18 @@ async function requestJson(path, options = {}) {
   return payload
 }
 
-export function fetchLoans(token) {
-  return requestJson('/api/v1/loans/', {
+export function fetchLoans(token, params = {}) {
+  const queryParams = new URLSearchParams()
+  if (params.borrower_name) queryParams.append('borrower_name', params.borrower_name)
+  if (params.item_code) queryParams.append('item_code', params.item_code)
+  if (params.status) queryParams.append('status', params.status)
+  if (params.start_date) queryParams.append('start_date', params.start_date)
+  if (params.end_date) queryParams.append('end_date', params.end_date)
+
+  const queryString = queryParams.toString()
+  const url = queryString ? `/api/v1/loans/?${queryString}` : '/api/v1/loans/'
+
+  return requestJson(url, {
     headers: buildHeaders(token),
   })
 }

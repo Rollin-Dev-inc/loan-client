@@ -34,8 +34,18 @@ export function createCategory({ name, token }) {
   })
 }
 
-export function fetchItems(token) {
-  return requestJson('/api/v1/items/', {
+export function fetchItems(token, params = {}) {
+  const queryParams = new URLSearchParams()
+  if (params.q) queryParams.append('q', params.q)
+  if (params.category_id) queryParams.append('category_id', params.category_id)
+  if (params.in_stock !== undefined && params.in_stock !== null && params.in_stock !== '') {
+    queryParams.append('in_stock', params.in_stock)
+  }
+
+  const queryString = queryParams.toString()
+  const url = queryString ? `/api/v1/items/?${queryString}` : '/api/v1/items/'
+
+  return requestJson(url, {
     headers: buildHeaders(token),
   })
 }
@@ -51,6 +61,33 @@ export function createItem({ payload, token }) {
   })
 }
 
+export function updateItem({ itemId, payload, token }) {
+  return requestJson(`/api/v1/items/${itemId}`, {
+    method: 'PUT',
+    headers: {
+      ...buildHeaders(token),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function deleteItem({ itemId, token }) {
+  const response = await fetch(`${getApiBaseUrl()}/api/v1/items/${itemId}`, {
+    method: 'DELETE',
+    headers: buildHeaders(token),
+  })
+
+  if (!response.ok) {
+    const payload = await response.json().catch(() => ({}))
+    throw new Error(payload.detail || 'Gagal menghapus item')
+  }
+}
+
 export function getItemPhotoUrl(itemId) {
   return `${getApiBaseUrl()}/api/v1/items/${itemId}/photo`
+}
+
+export function getItemPhotoAdditionalUrl(itemId, photoId) {
+  return `${getApiBaseUrl()}/api/v1/items/${itemId}/photos/${photoId}`
 }

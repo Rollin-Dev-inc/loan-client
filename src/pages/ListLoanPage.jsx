@@ -84,6 +84,13 @@ function ListLoanPage({ token }) {
   const [errorMessage, setErrorMessage] = useState('')
   const [actionMessage, setActionMessage] = useState('')
   const [loadingLoanId, setLoadingLoanId] = useState(null)
+
+  // Search and Filter State
+  const [searchBorrower, setSearchBorrower] = useState('')
+  const [searchItemCode, setSearchItemCode] = useState('')
+  const [filterStartDate, setFilterStartDate] = useState('')
+  const [filterEndDate, setFilterEndDate] = useState('')
+
   const [createForm, setCreateForm] = useState({
     borrower_name: '',
     item_id: '',
@@ -97,7 +104,12 @@ function ListLoanPage({ token }) {
     setErrorMessage('')
     try {
       const [loanData, notificationData, itemData] = await Promise.all([
-        fetchLoans(token),
+        fetchLoans(token, {
+          borrower_name: searchBorrower || undefined,
+          item_code: searchItemCode || undefined,
+          start_date: filterStartDate || undefined,
+          end_date: filterEndDate || undefined,
+        }),
         fetchLoanNotifications(token),
         fetchLoanItems(token),
       ])
@@ -109,11 +121,11 @@ function ListLoanPage({ token }) {
     } finally {
       setIsLoading(false)
     }
-  }, [token])
+  }, [token, searchBorrower, searchItemCode, filterStartDate, filterEndDate])
 
   useEffect(() => {
     loadData()
-  }, [loadData])
+  }, [loadData]) // Trigger mostly manually on search
 
   const filteredLoans = useMemo(() => {
     if (statusFilter === 'all') {
@@ -225,11 +237,14 @@ function ListLoanPage({ token }) {
     setIsSubmittingCreate(true)
 
     try {
+      const selectedItem = availableItems.find(i => i.id === Number(createForm.item_id))
+
       await createLoan({
         token,
         payload: {
           borrower_name: createForm.borrower_name.trim(),
           item_id: Number(createForm.item_id),
+          item_code: selectedItem ? selectedItem.item_code : undefined,
           duration_days: Number(createForm.duration_days),
           borrowed_at: createForm.borrowed_at,
           price_to_pay: Number(createForm.price_to_pay),
@@ -255,36 +270,87 @@ function ListLoanPage({ token }) {
 
   return (
     <div className="space-y-5">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Daftar Pinjaman</h1>
-          <p className="text-sm text-slate-500">
-            Kelola pinjaman dan konfirmasi pengembalian barang.
-          </p>
+      <header className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900">Daftar Pinjaman</h1>
+            <p className="text-sm text-slate-500">
+              Kelola pinjaman dan konfirmasi pengembalian barang.
+            </p>
+          </div>
+          <div className="shrink-0">
+            <button
+              type="button"
+              onClick={() => setShowCreateForm((prev) => !prev)}
+              className="w-full rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-700 sm:w-auto"
+            >
+              {showCreateForm ? 'Tutup Form' : '+ Tambah Peminjam'}
+            </button>
+          </div>
         </div>
-        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-end">
-          <button
-            type="button"
-            onClick={() => setShowCreateForm((prev) => !prev)}
-            className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700"
+
+        <div className="flex flex-wrap items-end gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+          <form
+            onSubmit={(e) => { e.preventDefault(); loadData() }}
+            className="flex flex-wrap items-end gap-2"
           >
-            {showCreateForm ? 'Tutup Form' : 'Tambah Peminjam'}
-          </button>
-          <div className="w-full sm:w-52">
-          <label htmlFor="status-filter" className="mb-1 block text-xs font-semibold text-slate-600">
-            Filter Status
-          </label>
-          <select
-            id="status-filter"
-            value={statusFilter}
-            onChange={(event) => setStatusFilter(event.target.value)}
-            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-300"
-          >
-            <option value="all">Semua</option>
-            <option value="active">Belum Kembali</option>
-            <option value="overdue">Terlambat</option>
-            <option value="returned">Sudah Kembali</option>
-          </select>
+            <div className="w-full sm:w-32">
+              <input
+                placeholder="Peminjam..."
+                value={searchBorrower}
+                onChange={(e) => setSearchBorrower(e.target.value)}
+                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-300"
+              />
+            </div>
+            <div className="w-full sm:w-32">
+              <input
+                placeholder="Kode Item..."
+                value={searchItemCode}
+                onChange={(e) => setSearchItemCode(e.target.value)}
+                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition uppercase focus:border-slate-900 focus:ring-2 focus:ring-slate-300"
+              />
+            </div>
+            <div className="w-full sm:w-32">
+              <input
+                type="date"
+                value={filterStartDate}
+                onChange={(e) => setFilterStartDate(e.target.value)}
+                title="Mulai Tanggal"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-300"
+              />
+            </div>
+            <div className="w-full sm:w-32">
+              <input
+                type="date"
+                value={filterEndDate}
+                onChange={(e) => setFilterEndDate(e.target.value)}
+                title="Sampai Tanggal"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-300"
+              />
+            </div>
+            <div className="w-full sm:w-auto">
+              <button
+                type="submit"
+                className="w-full rounded-xl bg-slate-200 px-4 py-2 font-semibold text-slate-800 transition hover:bg-slate-300 sm:w-auto"
+                disabled={isLoading}
+              >
+                Cari
+              </button>
+            </div>
+          </form>
+
+          <div className="w-full sm:w-48">
+            <select
+              id="status-filter"
+              value={statusFilter}
+              onChange={(event) => setStatusFilter(event.target.value)}
+              className="w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-300"
+            >
+              <option value="all">Semua Status</option>
+              <option value="active">Belum Kembali</option>
+              <option value="overdue">Terlambat</option>
+              <option value="returned">Sudah Kembali</option>
+            </select>
           </div>
         </div>
       </header>
