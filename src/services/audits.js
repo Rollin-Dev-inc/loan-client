@@ -1,4 +1,5 @@
 import { getApiBaseUrl } from '../config/env'
+import { parseApiError } from '../utils/apiUtils'
 
 function buildHeaders(token) {
     const headers = {}
@@ -12,7 +13,7 @@ async function requestJson(path, options = {}) {
     const response = await fetch(`${getApiBaseUrl()}${path}`, options)
     const payload = await response.json().catch(() => ({}))
     if (!response.ok) {
-        throw new Error(payload.detail || 'Permintaan gagal')
+        throw new Error(parseApiError(payload, 'Permintaan gagal'))
     }
     return payload
 }

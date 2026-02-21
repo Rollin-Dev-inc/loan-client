@@ -1,4 +1,5 @@
 import { getApiBaseUrl } from '../config/env'
+import { parseApiError } from '../utils/apiUtils'
 
 export async function loginRequest({ username, password }) {
   const response = await fetch(`${getApiBaseUrl()}/api/v1/auth/login`, {
@@ -9,7 +10,7 @@ export async function loginRequest({ username, password }) {
 
   const payload = await response.json().catch(() => ({}))
   if (!response.ok) {
-    throw new Error(payload.detail || 'Login gagal')
+    throw new Error(parseApiError(payload, 'Login gagal'))
   }
 
   return payload
@@ -24,7 +25,7 @@ export async function fetchProfile(token) {
 
   const payload = await response.json().catch(() => ({}))
   if (!response.ok) {
-    throw new Error(payload.detail || 'Gagal mengambil profil')
+    throw new Error(parseApiError(payload, 'Gagal mengambil profil'))
   }
 
   return payload

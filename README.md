@@ -1,109 +1,85 @@
-# Frontend Rental Mobil
+# Aplikasi Frontend Rental Mobil / Peminjaman Barang
 
-Frontend ini dibuat menggunakan:
-- React + Vite
-- Tailwind CSS v4
+Frontend ini adalah sebuah sistem manajemen antarmuka berkinerja tinggi yang dibangun untuk memantau inventaris dan siklus sewa-menyewa menggunakan **React + Vite** & **Tailwind CSS v4**.
 
-## Fitur Utama
+## ✨ Fitur-Fitur Utama
 
-- Login ke backend (`/api/v1/auth/login`)
-- Dashboard:
-  - Ringkasan data berdasarkan periode
-  - Export data ke file CSV (bisa dibuka di Excel)
-  - Popup chart item yang dipinjam
-- Daftar Pinjaman:
-  - Tambah peminjam
-  - Filter status pinjaman
-  - Notifikasi jatuh tempo
-  - Konfirmasi pengembalian
-- Daftar Item:
-  - Buat kategori
-  - Tambah item + upload foto
-  - Form bisa hide/show
+- **Sistem Autentikasi RBAC (Aman)**: Pemisahan level akun (`ADMIN` & `STAFF`). Seluruh menu navigasi, tombol Hapus/Ubah Barang, hingga wawasan Dasbor Finansial tersembunyi dengan apik untuk Staf Biasa.
+- **Pengepakan Komponen Dasbor Premium**:
+  - Tinjauan Metrik berdasarkan Rentang Waktu
+  - Tombol Unduh Laporan Pinjaman ke Format CSV/Excel
+  - *Popup Chart* Visualisasi Item Peminjaman Populer
+  - Modul Tabel Riwayat Audit Sistem Sejarah Lengkap
+- **Manajemen Formulir Sewa (Loans)**:
+  - Form Pembuatan peminjam asinkron dengan kalkulasi Jatuh Tempo visual.
+  - Saringan pencarian kuat (Berbasis Tanggal, Kata Kunci, Status, dsb).
+  - Tanda Notifikasi Tenggat Jatuh Tempo (*Overdue notifications*).
+  - Status Lacak Pengembalian Otomatis mengurangi/menambah *Stock* Gudang.
+- **Daftar Master Data Inventaris (Items)**:
+  - Form Pembuatan Kategori yang tanggap.
+  - Komponen **Multi-Upload Foto** Interaktif: Penampil Pratinjau *Thumbnail*, dukungan Penghapusan Foto dari awan, dan Modul Penjelajah (*Carousel Viewer Popup*) tanpa bingkai gawai peramban baku.
+  - Fungsionalitas Edit Formulir Barang Penuh (Termasuk Foto-foto lama).
+  - Perlindungan *Soft-Delete* tanpa merusak historis data lama di dasbor (Asalkan Barang sudah beres dipinjam).
 
-## Prasyarat
+## 🛡️ Lapisan Eksklusif Anti-Tamper Watermark
 
-- Node.js 18+ (disarankan versi LTS)
-- Backend berjalan di URL yang benar (default `http://localhost:8000`)
+Aplikasi React ini ditenagai **Pelindung Hard-Mode Watermark Obfuscator**. Logo `Powered by Rollindev | Pabloraka` adalah bukti kuat yang terus bermutasi menempel ke dalam struktur utama `index.html`. 
+Skrip injeksi direkayasa menggunakan kompresi Heksadesimal `MutationObserver` dan putaran Poling Waktu `setInterval` canggih. Segala macam upaya dari AdBlocker maupun Peretas Iseng (*Display: none*) melalui _Inspect Element Browser_ akan segera digagalkan dan di-regenerasi otomatis sepersekian milidetik!
 
-## Instalasi
+---
 
-```bash
-npm install
-```
+## 🛠️ Prasyarat Lingkungan
 
-## Konfigurasi Environment
+- Node.js 18+ (disarankan menggunakan versi LTS)
+- Backend API berjalan sinkron di port standar (`http://localhost:8000`) 
 
-1. Salin file env:
+## 🔌 Konfigurasi `.env` Lingkungan
+
+Salin dan buat berkas rahasia dari *template* yang tersedia:
 ```bash
 copy .env.example .env
 ```
 
-2. Isi URL backend:
+Pusatkan konfigurasi *Bridge* URL Backend yang menjembatani jalaur komunikasi Frontend:
 ```env
 VITE_API_BASE_URL=http://localhost:8000
 ```
+> **Catatan Kesalahan Umum**: Teks galat raksasa dari Peladen kini diterjemahkan utuh menjadi Notifikasi Bahasa Indonesia yang renyah menggunakan Filter `parseApiError`.
 
-Catatan:
-- Frontend membaca `VITE_API_BASE_URL` sebagai prioritas.
-- Fallback lama `VITE_BACKEND_URLS` masih didukung.
+---
 
-## Menjalankan Project
+## 🚀 Perintah Pemandu Pembangunan
 
-Mode development:
+Mode Jembangan Lokal Cepat (React Vite):
 ```bash
 npm run dev
 ```
 
-Build production:
+Kompilasi ke Paket Publikasi (Production Build):
 ```bash
 npm run build
 ```
 
-Preview build:
+Pratinjau Uji Coba Laman Final (Preview Build):
 ```bash
 npm run preview
 ```
 
-Lint:
-```bash
-npm run lint
-```
+## 📂 Peta Struktur Direktori
 
-## Struktur Folder
+Kiblat kode terpusat dalam rancang bangun modular:
 
 ```text
 src/
-|-- components/   # Komponen reusable UI (Button, Sidebar, Layout, Modal, dll)
-|-- config/       # Env/config frontend
-|-- pages/        # Halaman (Login, Dashboard, ListLoan, ListItem, dll)
-|-- services/     # HTTP request ke backend API
-|-- App.jsx       # Root app + auth gate sederhana
-|-- main.jsx      # Entry React
-`-- index.css     # Tailwind v4 import + global style
+|-- components/   # Rakitan puzzle reusable (Button, Sidebar, Table, Modal Penuh, TextBox)
+|-- config/       # Penyimpan Konstanta Env/URL Backend Dasar
+|-- pages/        # Koleksi Ruang Utama (Login, Dashboard Utama, ListLoan, ListItem, AuditLog)
+|-- services/     # Motor Jaringan Penghubung HTTP (*Fetch* ke Endpoints API dengan Token Bearer)
+|-- utils/        # Kolektor Perkakas Pembantu Terpusat (Pengurai Api Error Translator Indonesia)
+|-- App.jsx       # Gerbang Utama Rute + Blokade Login/Redirection
+|-- main.jsx      # *Entry React* Injeksi + Penampung Obfuscator Paten Watermark 🛡️
+`-- index.css     # Pangkalan Utilitas *Tailwind CSS v4*
 ```
 
-## Integrasi Backend
-
-Pastikan backend memiliki:
-- Auth endpoint:
-  - `POST /api/v1/auth/login`
-- Dashboard endpoint:
-  - `GET /api/v1/dashboard/`
-- Loan endpoint:
-  - `GET /api/v1/loans/`
-  - `POST /api/v1/loans/`
-  - `PATCH /api/v1/loans/{loan_id}/confirm-return`
-  - `GET /api/v1/loans/notifications`
-- Category endpoint:
-  - `GET /api/v1/categories/`
-  - `POST /api/v1/categories/`
-- Item endpoint:
-  - `GET /api/v1/items/`
-  - `POST /api/v1/items/`
-  - `GET /api/v1/items/{item_id}/photo`
-
-## Catatan
-
-- Token login disimpan di `localStorage` dengan key `access_token`.
-- Jika CORS error, cek `CORS_ORIGINS` di backend `.env`.
+---
+Catatan: Sesi Token diselamatkan di `localStorage` bertajuk `access_token` & `user_role`. Jika terkena hambatan _CORS Error_, sesuaikan baris *Origins* Backend secepatnya.

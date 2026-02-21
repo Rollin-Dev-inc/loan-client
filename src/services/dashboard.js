@@ -1,4 +1,5 @@
 import { getApiBaseUrl } from '../config/env'
+import { parseApiError } from '../utils/apiUtils'
 
 export async function fetchDashboardSummary({ period, token }) {
   const headers = {}
@@ -12,7 +13,7 @@ export async function fetchDashboardSummary({ period, token }) {
 
   const payload = await response.json().catch(() => ({}))
   if (!response.ok) {
-    throw new Error(payload.detail || 'Gagal mengambil data dashboard')
+    throw new Error(parseApiError(payload, 'Gagal mengambil data dashboard'))
   }
 
   return payload
