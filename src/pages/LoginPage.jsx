@@ -45,7 +45,7 @@ function LoginPage({ onLoginSuccess }) {
     <main className="min-h-screen bg-gradient-to-br from-slate-100 via-zinc-50 to-amber-50 p-4 sm:p-8">
       <div className="mx-auto flex min-h-[calc(100vh-2rem)] w-full max-w-5xl items-center justify-center">
         <AuthCard
-          title="Login Rental Mobil"
+          title="Login Loan Service"
           subtitle="Masuk untuk mengelola kategori, item, pinjaman, dan dashboard."
         >
           <form className="space-y-4" onSubmit={handleSubmit}>
